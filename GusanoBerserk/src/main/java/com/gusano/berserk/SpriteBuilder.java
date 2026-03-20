@@ -19,7 +19,8 @@ public final class SpriteBuilder {
             for (int x = 0; x < width; x++) {
                 char basePixel = x < baseLine.length() ? baseLine.charAt(x) : ' ';
                 char layerPixel = x < layerLine.length() ? layerLine.charAt(x) : ' ';
-                merged.append(layerPixel != ' ' ? layerPixel : basePixel);
+                // Keep the base body readable; draw layer mainly in empty zones.
+                merged.append(layerPixel != ' ' && basePixel == ' ' ? layerPixel : basePixel);
             }
 
             if (y < height - 1) {
