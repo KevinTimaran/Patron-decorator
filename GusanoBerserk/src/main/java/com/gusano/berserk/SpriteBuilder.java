@@ -4,59 +4,76 @@ public final class SpriteBuilder {
     private SpriteBuilder() {
     }
 
+    public static String fuse(String base, String layer) {
+        String[] baseLines = base.split("\\R", -1);
+        String[] layerLines = layer.split("\\R", -1);
+
+        int height = Math.max(baseLines.length, layerLines.length);
+        int width = maxWidth(baseLines, layerLines);
+        StringBuilder merged = new StringBuilder();
+
+        for (int y = 0; y < height; y++) {
+            String baseLine = y < baseLines.length ? baseLines[y] : "";
+            String layerLine = y < layerLines.length ? layerLines[y] : "";
+
+            for (int x = 0; x < width; x++) {
+                char basePixel = x < baseLine.length() ? baseLine.charAt(x) : ' ';
+                char layerPixel = x < layerLine.length() ? layerLine.charAt(x) : ' ';
+                merged.append(layerPixel != ' ' ? layerPixel : basePixel);
+            }
+
+            if (y < height - 1) {
+                merged.append('\n');
+            }
+        }
+
+        return trimLeftAndRight(merged.toString());
+    }
+
     public static String fusionar(String base, String accesorio) {
-        String[] baseLineas = base.split("\\R", -1);
-        String[] capaLineas = accesorio.split("\\R", -1);
-
-        int alto = Math.max(baseLineas.length, capaLineas.length);
-        int ancho = calcularAnchoMaximo(baseLineas, capaLineas);
-        StringBuilder resultado = new StringBuilder();
-
-        for (int y = 0; y < alto; y++) {
-            String baseLinea = y < baseLineas.length ? baseLineas[y] : "";
-            String capaLinea = y < capaLineas.length ? capaLineas[y] : "";
-
-            for (int x = 0; x < ancho; x++) {
-                char pixelBase = x < baseLinea.length() ? baseLinea.charAt(x) : ' ';
-                char pixelCapa = x < capaLinea.length() ? capaLinea.charAt(x) : ' ';
-                resultado.append(pixelCapa != ' ' ? pixelCapa : pixelBase);
-            }
-
-            if (y < alto - 1) {
-                resultado.append('\n');
-            }
-        }
-
-        return recortarDerecha(resultado.toString());
+        return fuse(base, accesorio);
     }
 
-    public static String superponer(String base, String capa) {
-        return fusionar(base, capa);
+    private static int maxWidth(String[] baseLines, String[] layerLines) {
+        int width = 0;
+        for (String line : baseLines) {
+            width = Math.max(width, line.length());
+        }
+        for (String line : layerLines) {
+            width = Math.max(width, line.length());
+        }
+        return width;
     }
 
-    private static int calcularAnchoMaximo(String[] baseLineas, String[] capaLineas) {
-        int ancho = 0;
-        for (String linea : baseLineas) {
-            ancho = Math.max(ancho, linea.length());
-        }
-        for (String linea : capaLineas) {
-            ancho = Math.max(ancho, linea.length());
-        }
-        return ancho;
-    }
+    private static String trimLeftAndRight(String text) {
+        String[] lines = text.split("\\n", -1);
+        int minIndent = Integer.MAX_VALUE;
 
-    private static String recortarDerecha(String texto) {
-        String[] lineas = texto.split("\\n", -1);
-        StringBuilder normalizado = new StringBuilder();
-
-        for (int i = 0; i < lineas.length; i++) {
-            normalizado.append(lineas[i].replaceFirst("\\s+$", ""));
-            if (i < lineas.length - 1) {
-                normalizado.append('\n');
+        for (String line : lines) {
+            if (!line.isBlank()) {
+                int indent = 0;
+                while (indent < line.length() && line.charAt(indent) == ' ') {
+                    indent++;
+                }
+                minIndent = Math.min(minIndent, indent);
             }
         }
 
-        return normalizado.toString();
+        if (minIndent == Integer.MAX_VALUE) {
+            minIndent = 0;
+        }
+
+        StringBuilder normalized = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String withoutLeft = line.length() >= minIndent ? line.substring(minIndent) : line;
+            normalized.append(withoutLeft.replaceFirst("\\s+$", ""));
+            if (i < lines.length - 1) {
+                normalized.append('\n');
+            }
+        }
+
+        return normalized.toString().replaceFirst("\\n+$", "");
     }
 }
 
